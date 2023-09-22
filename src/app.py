@@ -151,11 +151,15 @@ def delete_employee(id):
     return employee_schema.jsonify(employee_obj)
 
 # Rutas para la clase Inventory #===================================================================================================
+
+
+
 @app.route('/inventories', methods=['GET'])
-def get_inventories():
+def get_inventories_list():
     all_inventories = INVENTORY.query.all()
     result = inventories_schema.dump(all_inventories)
     return jsonify(result)
+
 
 @app.route('/inventories', methods=['POST'])
 def add_inventory():
@@ -210,6 +214,82 @@ def delete_inventory(id):
     db.session.delete(inventory_obj)
     db.session.commit()
     return inventory_schema.jsonify(inventory_obj)
+
+
+
+
+
+#=========+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# Definir rutas de acuerdo a tu especificación OpenAPI
+
+
+# Definir otras rutas según tu especificación
+
+
+
+
+#========+++++===++++====+++++==++++++=++++
+
+
+import csv
+
+
+@app.route('/inventory/upload', methods=['POST'])
+def upload_inventory_from_csv():
+    # Asegúrate de que el archivo CSV se haya enviado en la solicitud
+    if 'frozono' not in request.files:
+        return jsonify({"error": "No CSV file uploaded"}), 400
+
+    csv_file = request.files['frozono']
+
+    # Verifica que el archivo tenga la extensión .csv
+    if not csv_file.filename.endswith('.csv'):
+        return jsonify({"error": "Invalid file format. Please upload a CSV file"}), 400
+
+    # Lee los datos del archivo CSV y crea las entradas de inventario
+    try:
+        csv_reader = csv.reader(csv_file)
+        next(csv_reader)  # Saltar la fila de encabezado si existe
+
+        for row in csv_reader:
+            # Procesa cada fila del archivo CSV y crea las entradas de inventario
+            store_name = row[0]
+            date = row[1]
+            flavor = row[2]
+            is_season_flavor = row[3]
+            quantity = int(row[4])
+            listed_by = row[5]
+
+            # Consulta la base de datos para obtener la tienda por nombre
+            store = STORE.query.filter_by(name=store_name).first()
+
+            if not store:
+                # Si la tienda no existe, puedes manejarlo según tus necesidades.
+                # Puedes registrar la tienda si lo deseas.
+                continue
+
+            # Crea una nueva entrada de inventario
+            new_inventory = INVENTORY(
+                store_id=store.id,  # Utiliza el ID de la tienda
+                employee_id=1,  # Asume un valor para el empleado (ajusta según tu lógica)
+                date=date,
+                flavor=flavor,
+                is_season_flavor=is_season_flavor,
+                quantity=quantity
+            )
+
+            # Agrega la entrada de inventario a la base de datos
+            db.session.add(new_inventory)
+
+        # Guarda los cambios en la base de datos
+        db.session.commit()
+
+        return jsonify({"message": "Inventory entries uploaded successfully"})
+    except Exception as e:
+        # Maneja errores aquí, por ejemplo, registrando un error en el archivo de registro
+        return jsonify({"error": str(e)}), 500
+    
+    
 
 #===================================================================================================
 
