@@ -1,5 +1,5 @@
 # API_ORM
-##Requisitos para su correcto funcionamiento:
+## Requisitos para su correcto funcionamiento:
 - Primero descargar las librerias a partir del documento requirements.txt
 - Segundo crear un archivo .env que contenga lo siguiente:
    - 1.PGSQL_HOST=ip o loaclhist
